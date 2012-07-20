@@ -1,0 +1,20 @@
+	/*
+	*
+	*	MySpamBlock
+	*
+	*	MyBB spam prevention plugin.
+	*	Created by Ethan DeLong & Josh Medeiros
+	*	http://mybbplug.in/s/
+	*
+	*	This plugin will install a spam prevention system to prevent
+	*	spammers from registering and/or posting spam on your forum.
+	*	The settings are highly customizable and you can alter them
+	*	by going to your ACP => Forums & Posts => MySpamBlock
+	*
+	*	You are free to use, modify, and redistribute this plugin at
+	*	will, so long as you provide credit to MybbPlug.in/s/ for the
+	*	original version.
+	*
+	*	Thanks for using, and we hope you enjoy!
+	*
+	*/
