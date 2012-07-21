@@ -5,7 +5,7 @@
 	*	MySpamBlock
 	*
 	*	MyBB spam prevention plugin.
-	*	Created by Ethan DeLong
+	*	Created by Ethan DeLong & Josh Medeiros
 	*	http://mybbplug.in/s/
 	*
 	*	This plugin will install a spam prevention system to prevent
@@ -111,45 +111,45 @@
 			'value' => '1'
 		);
 		
-			$default_settings[] = array(
-				'name' => 'register_approve_flagged',
-				'value' => '0'
-			);
-		
-			$default_settings[] = array(
-				'name' => 'register_blockmessage',
-				'value' => $lang->error_spam_deny
-			);
-		
-			$default_settings[] = array(
-				'name' => 'register_stopforumspam',
-				'value' => '0'
-			);
-		
-			$default_settings[] = array(
-				'name' => 'register_stopforumspam_key',
-				'value' => ''
-			);
-		
-			$default_settings[] = array(
-				'name' => 'register_captcha',
-				'value' => '0'
-			);
-		
-			$default_settings[] = array(
-				'name' => 'register_captcha_key',
-				'value' => ''
-			);
-		
-			$default_settings[] = array(
-				'name' => 'register_question',
-				'value' => '0'
-			);
-		
-			$default_settings[] = array(
-				'name' => 'register_question_options',
-				'value' => 'a:0:{}'
-			);
+		$default_settings[] = array(
+			'name' => 'register_approve_flagged',
+			'value' => '0'
+		);
+	
+		$default_settings[] = array(
+			'name' => 'register_blockmessage',
+			'value' => $lang->error_spam_deny
+		);
+	
+		$default_settings[] = array(
+			'name' => 'register_stopforumspam',
+			'value' => '0'
+		);
+	
+		$default_settings[] = array(
+			'name' => 'register_stopforumspam_key',
+			'value' => ''
+		);
+	
+		$default_settings[] = array(
+			'name' => 'register_captcha',
+			'value' => '0'
+		);
+	
+		$default_settings[] = array(
+			'name' => 'register_captcha_key',
+			'value' => ''
+		);
+	
+		$default_settings[] = array(
+			'name' => 'register_question',
+			'value' => '0'
+		);
+	
+		$default_settings[] = array(
+			'name' => 'register_question_options',
+			'value' => 'a:0:{}'
+		);
 			
 		// Post default settings.
 		
@@ -158,25 +158,25 @@
 			'value' => '1'
 		);
 		
-			$default_settings[] = array(
-				'name' => 'post_approve_flagged',
-				'value' => '0'
-			);
-		
-			$default_settings[] = array(
-				'name' => 'post_links_postlimit',
-				'value' => '5'
-			);
-		
-			$default_settings[] = array(
-				'name' => 'post_repetition_block',
-				'value' => '1'
-			);
-		
-			$default_settings[] = array(
-				'name' => 'post_timelimit',
-				'value' => '10'
-			);
+		$default_settings[] = array(
+			'name' => 'post_approve_flagged',
+			'value' => '0'
+		);
+	
+		$default_settings[] = array(
+			'name' => 'post_links_postlimit',
+			'value' => '5'
+		);
+	
+		$default_settings[] = array(
+			'name' => 'post_repetition_block',
+			'value' => '1'
+		);
+	
+		$default_settings[] = array(
+			'name' => 'post_timelimit',
+			'value' => '10'
+		);
 		
 		// Thread default settings.
 		
@@ -185,20 +185,20 @@
 			'value' => '1'
 		);
 		
-			$default_settings[] = array(
-				'name' => 'thread_approve_flagged',
-				'value' => '0'
-			);
-		
-			$default_settings[] = array(
-				'name' => 'thread_timelimit',
-				'value' => '120'
-			);
-		
-			$default_settings[] = array(
-				'name' => 'thread_postlimit',
-				'value' => '5'
-			);
+		$default_settings[] = array(
+			'name' => 'thread_approve_flagged',
+			'value' => '0'
+		);
+	
+		$default_settings[] = array(
+			'name' => 'thread_timelimit',
+			'value' => '120'
+		);
+	
+		$default_settings[] = array(
+			'name' => 'thread_postlimit',
+			'value' => '5'
+		);
 		
 		// Other settings.
 		

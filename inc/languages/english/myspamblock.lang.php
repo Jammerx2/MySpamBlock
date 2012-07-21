@@ -1,0 +1,5 @@
+<?php
+
+	$l['myspamblock'] = 'MySpamBlock';
+
+?>
