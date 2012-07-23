@@ -168,7 +168,7 @@
 	
 		$default_settings[] = array(
 			'name' => 'register_question_options',
-			'value' => 'a:0:{}',
+			'value' => 'What is 2 + 2?//4',
 			'type' => 'textarea',
 			'cat' => 'r'
 		);
