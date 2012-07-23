@@ -63,13 +63,13 @@
 		if(!$db->table_exists('myspamblock_flagged'))
 		{
 			$myspamblock_table = 'CREATE TABLE `'.TABLE_PREFIX.'myspamblock_flagged` (
-											`id` INT( 10 ) NOT NULL AUTO_INCREMENT ,
-											`dateline` INT( 11 ) NOT NULL ,
-											`uid` INT( 10 ) NOT NULL ,
-											`pid` INT( 10 ) NOT NULL,
-											`reason` TEXT NOT NULL ,
-											PRIMARY KEY ( `id` )
-											) ENGINE = MYISAM ;
+				`id` INT( 10 ) NOT NULL AUTO_INCREMENT ,
+				`dateline` INT( 11 ) NOT NULL ,
+				`uid` INT( 10 ) NOT NULL ,
+				`pid` INT( 10 ) NOT NULL,
+				`reason` TEXT NOT NULL ,
+				PRIMARY KEY ( `id` )
+				) ENGINE = MYISAM ;
 								';
 			$db->query($myspamblock_table);
 		}
@@ -77,144 +77,190 @@
 		if(!$db->table_exists('myspamblock_logs'))
 		{
 			$myspamblock_table = 'CREATE TABLE `'.TABLE_PREFIX.'myspamblock_logs` (
-											`id` INT( 10 ) NOT NULL AUTO_INCREMENT ,
-											`dateline` INT( 11 ) NOT NULL ,
-											`type` TEXT NOT NULL ,
-											`info` TEXT NOT NULL ,
-											PRIMARY KEY ( `id` )
-											) ENGINE = MYISAM ;
+				`id` INT( 10 ) NOT NULL AUTO_INCREMENT ,
+				`dateline` INT( 11 ) NOT NULL ,
+				`type` TEXT NOT NULL ,
+				`info` TEXT NOT NULL ,
+				PRIMARY KEY ( `id` )
+				) ENGINE = MYISAM ;
 								';
 			$db->query($myspamblock_table);
 		}
 		
 		if(!$db->table_exists('myspamblock_settings'))
 		{
-			$myspamblock_table = 'CREATE TABLE `'.TABLE_PREFIX.'myspamblock_settings` (
-											`id` INT( 10 ) NOT NULL AUTO_INCREMENT ,
-											`name` TEXT NOT NULL ,
-											`value` TEXT NOT NULL ,
-											PRIMARY KEY ( `id` )
-											) ENGINE = MYISAM ;
-								';
+			$myspamblock_table = "CREATE TABLE `".TABLE_PREFIX."myspamblock_settings` (
+				`id` INT( 11 ) NOT NULL AUTO_INCREMENT ,
+				`name` TEXT NOT NULL ,
+				`value` TEXT NOT NULL ,
+				`type` TEXT NOT NULL ,
+				`cat` VARCHAR( 1 ) NOT NULL ,
+				PRIMARY KEY ( `id` )
+				) ENGINE = MYISAM CHARACTER SET utf8 COLLATE utf8_unicode_ci ;
+			";
 			$db->query($myspamblock_table);
 		}
 		
 		$default_settings[] = array(
 			'name' => 'enabled',
-			'value' => '1'
+			'value' => '1',
+			'type' => 'yesno',
+			'cat' => 'm'
 		);
 		
 		// Register default settings.
 		
 		$default_settings[] = array(
 			'name' => 'register_enabled',
-			'value' => '1'
+			'value' => '1',
+			'type' => 'yesno',
+			'cat' => 'r'
 		);
 		
 		$default_settings[] = array(
 			'name' => 'register_approve_flagged',
-			'value' => '0'
+			'value' => '0',
+			'type' => 'yesno',
+			'cat' => 'r'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'register_blockmessage',
-			'value' => $lang->error_spam_deny
+			'value' => $lang->error_spam_deny,
+			'type' => 'textarea',
+			'cat' => 'r'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'register_stopforumspam',
-			'value' => '0'
+			'value' => '0',
+			'type' => 'yesno',
+			'cat' => 'r'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'register_stopforumspam_key',
-			'value' => ''
+			'value' => '',
+			'type' => 'textbox',
+			'cat' => 'r'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'register_captcha',
-			'value' => '0'
+			'value' => '0',
+			'type' => 'yesno',
+			'cat' => 'r'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'register_captcha_key',
-			'value' => ''
+			'value' => '',
+			'type' => 'textbox',
+			'cat' => 'r'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'register_question',
-			'value' => '0'
+			'value' => '0',
+			'type' => 'yesno',
+			'cat' => 'r'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'register_question_options',
-			'value' => 'a:0:{}'
+			'value' => 'a:0:{}',
+			'type' => 'textarea',
+			'cat' => 'r'
 		);
 			
 		// Post default settings.
 		
 		$default_settings[] = array(
 			'name' => 'post_enabled',
-			'value' => '1'
+			'value' => '1',
+			'type' => 'yesno',
+			'cat' => 'p'
 		);
 		
 		$default_settings[] = array(
 			'name' => 'post_approve_flagged',
-			'value' => '0'
+			'value' => '0',
+			'type' => 'yesno',
+			'cat' => 'p'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'post_links_postlimit',
-			'value' => '5'
+			'value' => '5',
+			'type' => 'textbox',
+			'cat' => 'p'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'post_repetition_block',
-			'value' => '1'
+			'value' => '1',
+			'type' => 'yesno',
+			'cat' => 'p'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'post_timelimit',
-			'value' => '10'
+			'value' => '10',
+			'type' => 'textbox',
+			'cat' => 'p'
 		);
 		
 		// Thread default settings.
 		
 		$default_settings[] = array(
 			'name' => 'thread_enabled',
-			'value' => '1'
+			'value' => '1',
+			'type' => 'yesno',
+			'cat' => 't'
 		);
 		
 		$default_settings[] = array(
 			'name' => 'thread_approve_flagged',
-			'value' => '0'
+			'value' => '0',
+			'type' => 'yesno',
+			'cat' => 't'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'thread_timelimit',
-			'value' => '120'
+			'value' => '120',
+			'type' => 'textbox',
+			'cat' => 't'
 		);
 	
 		$default_settings[] = array(
 			'name' => 'thread_postlimit',
-			'value' => '5'
+			'value' => '5',
+			'type' => 'textbox',
+			'cat' => 't'
 		);
 		
 		// Other settings.
 		
 		$default_settings[] = array(
 			'name' => 'user_numposts_override',
-			'value' => '20'
+			'value' => '20',
+			'type' => 'textbox',
+			'cat' => 'u'
 		);
 		
 		$default_settings[] = array(
 			'name' => 'user_signature_postlimit',
-			'value' => '5'
+			'value' => '5',
+			'type' => 'textbox',
+			'cat' => 'u'
 		);
 		
 		$default_settings[] = array(
 			'name' => 'user_website_postlimit',
-			'value' => '5'
+			'value' => '5',
+			'type' => 'textbox',
+			'cat' => 'u'
 		);
 		
 		$db->insert_query_multiple('myspamblock_settings', $default_settings);
