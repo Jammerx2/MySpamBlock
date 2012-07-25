@@ -37,95 +37,65 @@
 	{
 		$page->output_header($lang->manage);
 
-		$page->output_nav_tabs($sub_tabs, 'manage');
+		$page->output_nav_tabs($sub_tabs, 'myspamblock');
 
-		$table = new Table;
-		$table->construct_header($lang->subscription);
-		$table->construct_header($lang->price_length);
-		$table->construct_header($lang->controls, array('width' => '100', 'style' => 'text-align: center;'));
-	
-		$subs_result = $db->simple_select('mysubs');
-		while($sub = $db->fetch_array($subs_result))
-		{
-			if($sub['active'] == 1)
-				$icon = "<img src=\"styles/{$page->style}/images/icons/bullet_on.gif\" alt=\"({$lang->active})\" title=\"{$lang->active}\"  style=\"vertical-align: middle;\" /> ";
-			else
-				$icon = "<img src=\"styles/{$page->style}/images/icons/bullet_off.gif\" alt=\"({$lang->alt_unactive})\" title=\"{$lang->alt_unactive}\"  style=\"vertical-align: middle;\" /> ";
-			
-			$price = array();
-			$prices = unserialize($sub['price']);
-			foreach($prices as $val)
-			{
-				if($val['l'] < 1) $lt = $lang->forever;
-				else $lt = $val['l'].' '.(($val['lt'] == 'y') ? (($val['l'] > 1) ? $lang->years : $lang->year) : (($val['lt'] == 'm') ? (($val['l'] > 1) ? $lang->months : $lang->month) :  (($val['l'] > 1) ? $lang->days : $lang->day)));
-				$price[] = $val['c'].' '.$sub['currency'].' / '.$lt;
-			}
-			
-			$options = new PopupMenu("sub_{$sub['sid']}", $lang->options);
-			$options->add_item($lang->edit_sub, "index.php?module=user-mysubs&amp;action=edit&amp;sid={$sub['sid']}");
-			$options->add_item($lang->view_subs, "index.php?module=user-mysubs&amp;action=notifications&sid={$sub['sid']}");
-			$options->add_item($lang->delete_sub, "index.php?module=user-mysubs&amp;action=delete&amp;sid={$sub['sid']}&amp;my_post_key={$mybb->post_code}", "return AdminCP.deleteConfirmation(this, '{$lang->confirm_sub_deletion}')");
-			
-			$table->construct_cell("<div class=\"float_right\">{$icon}</div><div><strong><a href=\"index.php?module=user-mysubs&amp;action=edit&amp;sid={$sub['sid']}\">{$sub['name']}</a></strong><br /><small>{$sub['admin_desc']}</small></div>");
-			$table->construct_cell(implode('<br />', $price));
-			$table->construct_cell($options->fetch(), array("class" => "align_center"));
-			$table->construct_row();
-		}
-		
-		if($table->num_rows() == 0)
-		{
-			$table->construct_cell($lang->no_subs, array('colspan' => 3));
-			$table->construct_row();
-		}
-		
-		$table->output($lang->manage_subs);
-	}
-	else
-	if($mybb->input['action'] == 'settings')
-	{
-		$page->output_header($lang->settngs);
-
-		$page->output_nav_tabs($sub_tabs, 'settings');
-		
 		if($mybb->request_method == 'post')
 		{
-			$query = $db->simple_select('mysubs_settings');
+			$query = $db->simple_select('myspamblock_settings');
 			while($set = $db->fetch_array($query))
 			{
 				$name = 'setting_'.$set['name'];
+				if($set['type'] == 'select')
+				{
+					$val = unserialize($set['value']);
+					$val['selected'] = (isset($mybb->input[$name]) ? $mybb->input[$name] : 0);
+					$mybb->input[$name] = serialize($val);
+				}
 				if(isset($mybb->input[$name]))
-					$db->update_query('mysubs_settings', array('value' => $db->escape_string($mybb->input[$name])), "`id` = $set[id]");
+					$db->update_query('myspamblock_settings', array('value' => $db->escape_string($mybb->input[$name])), "`id` = $set[id]");
 			}
 			flash_message($lang->success_save, 'success');
-			admin_redirect("index.php?module=user-mysubs&amp;action=settings");
+			admin_redirect("index.php?module=forum-myspamblock");
 		}
 	
-		$form = new Form("index.php?module=user-mysubs&amp;action=settings", "post");
+		$form = new Form("index.php?module=forum-myspamblock", "post");
 		
-		if($errors)
-		{
-			$page->output_inline_error($errors);
-		}
+		$main_container = new FormContainer($lang->main_settings, '', '', 0, '', true);
+		$reg_container = new FormContainer($lang->registration_settings, '', '', 0, '', true);
+		$post_container = new FormContainer($lang->post_settings, '', '', 0, '', true);
+		$thread_container = new FormContainer($lang->thread_settings, '', '', 0, '', true);
+		$other_container = new FormContainer($lang->other_settings, '', '', 0, '', true);
 		
-		$normal_container = new FormContainer($lang->basic_settings, '', '', 0, '', true);
-		$advanced_container = new FormContainer($lang->advanced_settings, '', '', 0, '', true);
-		
-		$query = $db->simple_select('mysubs_settings');
+		$query = $db->simple_select('myspamblock_settings');
 		while($set = $db->fetch_array($query))
 		{
-			$container = ($set['cat'] == 'n') ? 'normal_container' : 'advanced_container';
+			if($set['cat'] == 'm') $container = 'main_container';
+			else if($set['cat'] == 'r') $container = 'reg_container';
+			else if($set['cat'] == 'p') $container = 'post_container';
+			else if($set['cat'] == 't') $container = 'thread_container';
+			else $container = 'other_container';
 			$name = 'setting_'.$set['name'];
 			$lname = $lang->{$name};
 			$desc = $lang->{'setting_'.$set['name'].'_desc'};
 			$type = '';
+			if($set['type'] == 'select')
+			{
+				$set['value'] = unserialize($set['value']);
+				$set['options'] = $set['value']['options'];
+				$set['value'] = $set['value']['selected'];
+				foreach($set['options'] as $k => $v) $set['options'][$k] = $lang->{$name.'_options_'.$v};
+			}
 			if(!isset($mybb->input[$name])) $mybb->input[$name] = $set['value'];
 			switch($set['type'])
 			{
 				case 'yesno':
 					$type = $form->generate_yes_no_radio($name, $mybb->input[$name], true);
 					break;
+				case 'textarea':
+					$type = $form->generate_text_area($name, $mybb->input[$name], array('id' => $name));
+					break;
 				case 'select':
-					// $type = $form->generate_select_box();
+					$type = $form->generate_select_box($name, $set['options'], $mybb->input[$name], array('id' => $name));
 					break;
 				case 'text':
 				default:
@@ -135,14 +105,31 @@
 			${$container}->output_row($lname, $desc, $type, $lname);
 		}
 		
-		$normal_container->end();
-		$advanced_container->end();
+		$main_container->end();
+		$reg_container->end();
+		$post_container->end();
+		$thread_container->end();
+		$other_container->end();
 		
 		$buttons[] = $form->generate_submit_button($lang->save_settings);
 		
 		$form->output_submit_wrapper($buttons);
 
 		$form->end();
+	}
+	else
+	if($mybb->input['action'] == 'flagged')
+	{
+		$page->output_header($lang->manage);
+
+		$page->output_nav_tabs($sub_tabs, 'flagged');
+	}
+	else
+	if($mybb->input['action'] == 'logs')
+	{
+		$page->output_header($lang->manage);
+
+		$page->output_nav_tabs($sub_tabs, 'logs');
 	}
 	else
 	{

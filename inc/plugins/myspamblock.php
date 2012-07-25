@@ -139,16 +139,9 @@
 		);
 	
 		$default_settings[] = array(
-			'name' => 'register_stopforumspam_key',
-			'value' => '',
-			'type' => 'textbox',
-			'cat' => 'r'
-		);
-	
-		$default_settings[] = array(
 			'name' => 'register_captcha',
-			'value' => '0',
-			'type' => 'yesno',
+			'value' => 'a:2:{s:8:"selected";i:0;s:7:"options";a:3:{i:0;s:7:"default";i:1;s:6:"asirra";i:2;s:9:"recaptcha";}}',
+			'type' => 'select',
 			'cat' => 'r'
 		);
 	
@@ -168,7 +161,7 @@
 	
 		$default_settings[] = array(
 			'name' => 'register_question_options',
-			'value' => 'What is 2 + 2?//4',
+			'value' => "What is 2 + 2?//4;four\nWhat is the most popular search engine today?//google",
 			'type' => 'textarea',
 			'cat' => 'r'
 		);
@@ -243,21 +236,21 @@
 		// Other settings.
 		
 		$default_settings[] = array(
-			'name' => 'user_numposts_override',
+			'name' => 'other_numposts_override',
 			'value' => '20',
 			'type' => 'textbox',
 			'cat' => 'u'
 		);
 		
 		$default_settings[] = array(
-			'name' => 'user_signature_postlimit',
+			'name' => 'other_signature_postlimit',
 			'value' => '5',
 			'type' => 'textbox',
 			'cat' => 'u'
 		);
 		
 		$default_settings[] = array(
-			'name' => 'user_website_postlimit',
+			'name' => 'other_website_postlimit',
 			'value' => '5',
 			'type' => 'textbox',
 			'cat' => 'u'
