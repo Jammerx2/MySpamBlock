@@ -23,6 +23,7 @@
 	
 	$plugins->add_hook('member_register_start', 'myspamblock_register_form');
 	$plugins->add_hook('member_do_register_start', 'myspamblock_register_submit');
+	$plugins->add_hook('member_do_register_end', 'myspamblock_register_complete');
 	$plugins->add_hook("admin_forum_menu", "myspamblock_admin_menu");
 	$plugins->add_hook("admin_forum_action_handler", "myspamblock_admin_action_handler");
 	
@@ -65,8 +66,9 @@
 			$myspamblock_table = 'CREATE TABLE `'.TABLE_PREFIX.'myspamblock_flagged` (
 				`id` INT( 10 ) NOT NULL AUTO_INCREMENT ,
 				`dateline` INT( 11 ) NOT NULL ,
-				`uid` INT( 10 ) NOT NULL ,
-				`pid` INT( 10 ) NOT NULL,
+				`uid` INT( 10 ) NOT NULL DEFAULT 0 ,
+				`ipaddress` TEXT NOT NULL ,
+				`pid` INT( 10 ) NOT NULL DEFAULT 0 ,
 				`reason` TEXT NOT NULL ,
 				PRIMARY KEY ( `id` )
 				) ENGINE = MYISAM ;
@@ -146,7 +148,14 @@
 		);
 	
 		$default_settings[] = array(
-			'name' => 'register_captcha_key',
+			'name' => 'register_captcha_publickey',
+			'value' => '',
+			'type' => 'textbox',
+			'cat' => 'r'
+		);
+	
+		$default_settings[] = array(
+			'name' => 'register_captcha_privatekey',
 			'value' => '',
 			'type' => 'textbox',
 			'cat' => 'r'
@@ -288,26 +297,103 @@
 	function myspamblock_register_form()
 	{
 		$setting = myspamblock_settings();
+		
+		if($setting['enabled'] && $setting['register_enabled'])
+		{
+			require_once MYBB_ROOT.'inc/plugins/myspamblock/functions_register.php';
+		}
 	}
 	
 	function myspamblock_register_submit()
 	{
 		$setting = myspamblock_settings();
 		
-		if($setting['register_enabled'])
+		if($setting['enabled'] && $setting['register_enabled'])
 		{
 			require_once MYBB_ROOT.'inc/plugins/myspamblock/functions_register.php';
+			
+			if($setting['register_stopforumspam'])
+			{
+				global $mybb, $session;
+				
+				if(CheckFlag($session->ipaddress))
+				{
+					if(!$setting['register_approve_flagged'])
+					{
+						error($setting['register_blockmessage']);
+					}
+				}
+				else
+				{
+					$result = StopForumSpam($mybb->input['email'], $session->ipaddress);
+					if(!$result || !$result['success'])
+					{
+						// No successful response from the server.
+					}
+					else
+					{
+						// Successful server response received. Check values now.
+						$confidence = 0;
+						if(isset($result['email']['confidence']))
+							$confidence += intval($result['email']['confidence']);
+						if(isset($result['ip']['confidence']))
+							$confidence += intval($result['ip']['confidence']);
+						$confidence = intval($confidence / 2);
+						
+						if($confidence > 25)
+						{
+							// Confidence average is greater than 25% for email and ip.
+							if($setting['register_approve_flagged'])
+							{
+								AddFlag($session->ipaddress);
+							}
+							else
+							{
+								error($setting['register_blockmessage']);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	function myspamblock_register_end()
+	{
+		global $db, $session;
+		
+		$setting = myspamblock_settings();
+		
+		if($setting['enabled'] && $setting['register_enabled'])
+		{
+			require_once MYBB_ROOT.'inc/plugins/myspamblock/functions_register.php';
+			
+			if($setting['register_approve_flagged'] && CheckFlag($session->ipaddress))
+			{
+				global $user_info;
+				AddFlag($session->ipaddress, $user_info['uid']);
+			}
 		}
 	}
 	
 	function myspamblock_post()
 	{
 		$setting = myspamblock_settings();
+		
+		if($setting['enabled'] && $setting['post_enabled'])
+		{
+			require_once MYBB_ROOT.'inc/plugins/myspamblock/functions_register.php';
+		}
 	}
 	
 	function myspamblock_thread()
 	{
 		$setting = myspamblock_settings();
+		
+		if($setting['enabled'] && $setting['thread_enabled'])
+		{
+			require_once MYBB_ROOT.'inc/plugins/myspamblock/functions_register.php';
+		}
 	}
 	
 	function myspamblock_admin_menu($sub_menu)

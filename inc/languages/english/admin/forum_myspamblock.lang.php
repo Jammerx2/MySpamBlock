@@ -30,9 +30,11 @@
 	$l['setting_register_captcha_desc'] = "You can select a custom captcha here (default MyBB's captcha).<br /><span class=\"smalltext\">Recommended is Asirra. It uses a massive animal db to display clickable images to block spambots.</span>";
 	$l['setting_register_captcha_options_default'] = 'Mybb Default';
 	$l['setting_register_captcha_options_asirra'] = 'Asirra (Recommended)';
-	$l['setting_register_captcha_options_recaptcha'] = 'reCaptcha (Requires Key)';
-	$l['setting_register_captcha_key'] = 'Captcha Key';
-	$l['setting_register_captcha_key_desc'] = "You only need to fill this in if you're using reCaptcha.";
+	$l['setting_register_captcha_options_recaptcha'] = 'reCaptcha (Requires Keys)';
+	$l['setting_register_captcha_publickey'] = 'Captcha Public Key';
+	$l['setting_register_captcha_publickey_desc'] = 'This is your public key (only if using reCaptcha).';
+	$l['setting_register_captcha_privatekey'] = 'Captcha Private Key';
+	$l['setting_register_captcha_privatekey_desc'] = "This is your private key (only if using reCaptcha).";
 	$l['setting_register_question'] = 'Registration Question';
 	$l['setting_register_question_desc'] = 'Would you like to display a random custom question to registrants?';
 	$l['setting_register_question_options'] = 'Registration Question Options';
