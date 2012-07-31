@@ -22,10 +22,13 @@
 	*/
 	
 	$plugins->add_hook('member_register_start', 'myspamblock_register_form');
+	$plugins->add_hook('xmlhttp', 'myspamblock_register_form_check');
+	$plugins->add_hook('member_register_end', 'myspamblock_register_form_end');
 	$plugins->add_hook('member_do_register_start', 'myspamblock_register_submit');
-	$plugins->add_hook('member_do_register_end', 'myspamblock_register_complete');
-	$plugins->add_hook("admin_forum_menu", "myspamblock_admin_menu");
-	$plugins->add_hook("admin_forum_action_handler", "myspamblock_admin_action_handler");
+	$plugins->add_hook('datahandler_user_validate', 'myspamblock_register_submit_validate');
+	$plugins->add_hook('member_do_register_end', 'myspamblock_register_submit_complete');
+	$plugins->add_hook('admin_forum_menu', 'myspamblock_admin_menu');
+	$plugins->add_hook('admin_forum_action_handler', 'myspamblock_admin_action_handler');
 	
 	/*
 	*	Basic information.
@@ -82,10 +85,22 @@
 				`id` INT( 10 ) NOT NULL AUTO_INCREMENT ,
 				`dateline` INT( 11 ) NOT NULL ,
 				`type` TEXT NOT NULL ,
-				`info` TEXT NOT NULL ,
 				PRIMARY KEY ( `id` )
 				) ENGINE = MYISAM ;
 								';
+			$db->query($myspamblock_table);
+		}
+		
+		if(!$db->table_exists('myspamblock_rqlog'))
+		{
+			$myspamblock_table = "CREATE TABLE `".TABLE_PREFIX."myspamblock_rqlog` (
+				`id` INT( 11 ) NOT NULL AUTO_INCREMENT ,
+				`qid` INT( 11 ) NOT NULL ,
+				`key` TEXT NOT NULL ,
+				`valid` INT( 11 ) NOT NULL DEFAULT 1 ,
+				PRIMARY KEY ( `id` )
+				) ENGINE = MYISAM CHARACTER SET utf8 COLLATE utf8_unicode_ci ;
+			";
 			$db->query($myspamblock_table);
 		}
 		
@@ -300,7 +315,75 @@
 		
 		if($setting['enabled'] && $setting['register_enabled'])
 		{
+			$setting['register_captcha'] = unserialize($setting['register_captcha']);
+			if($setting['register_captcha']['selected'])
+			{
+				// Captcha other than default is set, so hide the default one.
+				global $mybb;
+				$mybb->settings['captchaimage'] = 0;
+			}
+		}
+	}
+	
+	function myspamblock_register_form_check()
+	{
+		$setting = myspamblock_settings();
+		
+		if($setting['enabled'] && $setting['register_enabled'] && $setting['register_question'])
+		{
+			global $mybb;
+			if($mybb->input['action'] == 'validate_question')
+			{
+				global $charset, $db, $lang, $session;
+				header("Content-type: text/xml; charset={$charset}");
+				$lang->load('myspamblock');
+				$ans = strtolower($mybb->input['value']);
+				$key = md5($session->ipaddress);
+				$result = $db->simple_select('myspamblock_rqlog', '*', "`key`='{$key}'");
+				$log = $db->fetch_array($result);
+				$options = explode("\r\n", $setting['register_question_options']);
+				$question = explode('//', $options[$log['qid']]);
+				$answers = explode(';', $question[1]);
+				$success = false;
+				foreach($answers as $answer) if(strtolower($answer) == $ans) $success = true;
+				if($success)
+				{
+					echo "<success>{$lang->question_success}</success>";
+					exit;
+				}
+				else
+				{
+					echo "<fail>{$lang->question_fail}</fail>";
+					exit;
+				}
+			}
+		}
+	}
+	
+	function myspamblock_register_form_end()
+	{
+		$setting = myspamblock_settings();
+		
+		if($setting['enabled'] && $setting['register_enabled'])
+		{
+			global $lang;
+			$lang->load('myspamblock');
 			require_once MYBB_ROOT.'inc/plugins/myspamblock/functions_register.php';
+			
+			$setting['register_captcha'] = unserialize($setting['register_captcha']);
+			if($setting['register_captcha']['selected'])
+			{
+				// Get captcha html.
+				global $regimage;
+				$regimage = CaptchaHtml($setting);
+			}
+			
+			if($setting['register_question'])
+			{
+				global $regimage, $validator_extra;
+				$regimage = QuestionHtml($setting).$regimage;
+				$validator_extra .= "\tregValidator.register('rq_answer', 'ajax', { url: 'xmlhttp.php?action=validate_question', extra_body: 'rq_question', loading_message: '{$lang->question_loading}', failure_message: '{$lang->question_fail}'} );\n";
+			}
 		}
 	}
 	
@@ -311,6 +394,14 @@
 		if($setting['enabled'] && $setting['register_enabled'])
 		{
 			require_once MYBB_ROOT.'inc/plugins/myspamblock/functions_register.php';
+			
+			$setting['register_captcha'] = unserialize($setting['register_captcha']);
+			if($setting['register_captcha']['selected'])
+			{
+				// We have something other than the default captcha set, so don't check for it.
+				global $mybb;
+				$mybb->settings['captchaimage'] = 0;
+			}
 			
 			if($setting['register_stopforumspam'])
 			{
@@ -345,10 +436,11 @@
 							// Confidence average is greater than 25% for email and ip.
 							if($setting['register_approve_flagged'])
 							{
-								AddFlag($session->ipaddress);
+								AddFlag('register_check', $session->ipaddress);
 							}
 							else
 							{
+								AddLog('register_deny');
 								error($setting['register_blockmessage']);
 							}
 						}
@@ -358,10 +450,8 @@
 		}
 	}
 	
-	function myspamblock_register_end()
+	function myspamblock_register_submit_complete()
 	{
-		global $db, $session;
-		
 		$setting = myspamblock_settings();
 		
 		if($setting['enabled'] && $setting['register_enabled'])
@@ -370,8 +460,33 @@
 			
 			if($setting['register_approve_flagged'] && CheckFlag($session->ipaddress))
 			{
-				global $user_info;
-				AddFlag($session->ipaddress, $user_info['uid']);
+				global $session, $user_info;
+				AddFlag('register_check', $session->ipaddress, $user_info['uid']);
+			}
+		}
+	}
+	
+	function myspamblock_register_submit_validate(&$user)
+	{
+		$setting = myspamblock_settings();
+		
+		if($user->method == 'insert' && $setting['enabled'] && $setting['register_enabled'])
+		{
+			global $lang;
+			$lang->load('myspamblock');
+			require_once MYBB_ROOT.'inc/plugins/myspamblock/functions_register.php';
+			
+			$setting['register_captcha'] = unserialize($setting['register_captcha']);
+			if($setting['register_captcha']['selected'])
+			{
+				$error = CaptchaCheck($setting);
+				if($error) $user->set_error($error);
+			}
+			
+			if($setting['register_question'])
+			{
+				$error = QuestionCheck($setting);
+				if($error) $user->set_error($error);
 			}
 		}
 	}
@@ -382,6 +497,8 @@
 		
 		if($setting['enabled'] && $setting['post_enabled'])
 		{
+			global $lang;
+			$lang->load('myspamblock');
 			require_once MYBB_ROOT.'inc/plugins/myspamblock/functions_register.php';
 		}
 	}
@@ -392,6 +509,8 @@
 		
 		if($setting['enabled'] && $setting['thread_enabled'])
 		{
+			global $lang;
+			$lang->load('myspamblock');
 			require_once MYBB_ROOT.'inc/plugins/myspamblock/functions_register.php';
 		}
 	}
